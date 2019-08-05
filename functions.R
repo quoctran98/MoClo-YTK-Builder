@@ -22,8 +22,6 @@ validConstruct <- function (t1,t2,t3,t3a,t3b,t4,t4a,t4b,t5,t6,t7,t8,t8a,t8b,t234
                      na.rm = TRUE
                   )
   
-  print(partsNumber)
-  
   if (partsNumber == 11) {
     return(TRUE)
   } else {
