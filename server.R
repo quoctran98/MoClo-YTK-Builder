@@ -1,28 +1,52 @@
 library(shiny)
+library(DT)
+library(stringr)
 
-partsYTK <- read.csv("data/toolkit.csv", row.names = 1)
-partsCustom <- read.csv("data/user.csv", row.names = 1)
+parts <- read.csv("data/parts.csv", row.names = 1)
+stock <- read.csv("data/stock.csv", row.names = 1)
 
-type1Parts <- as.character(partsYTK[,2][partsYTK$type == 1])
-type2Parts <- c(as.character(partsYTK[,2][partsYTK$type == 2]), "None")
-type3Parts <- c(as.character(partsYTK[,2][partsYTK$type == 3]), "None")
-type3aParts <- c("None", as.character(partsYTK[,2][partsYTK$type == "3a"]))
-type3bParts <- c("None", as.character(partsYTK[,2][partsYTK$type == "3b"]))
-type4Parts <- c(as.character(partsYTK[,2][partsYTK$type == 4]), "None")
-type4aParts <- c("None", as.character(partsYTK[,2][partsYTK$type == "4a"]))
-type4bParts <- c("None", as.character(partsYTK[,2][partsYTK$type == "4b"]))
-type5Parts <- as.character(partsYTK[,2][partsYTK$type == 5])
-type6Parts <- c(as.character(partsYTK[,2][partsYTK$type == 6]), "None")
-type7Parts <- c(as.character(partsYTK[,2][partsYTK$type == 7]), "None")
-type8Parts <- c(as.character(partsYTK[,2][partsYTK$type == 8]), "None")
-type8aParts <- c("None", as.character(partsYTK[,2][partsYTK$type == "8a"]))
-type8bParts <- c("None", as.character(partsYTK[,2][partsYTK$type == "8b"]))
-type234Parts <- c("None", as.character(partsYTK[,2][partsYTK$type == 234]))
-type678Parts <- c("None", as.character(partsYTK[,2][partsYTK$type == 678]))
+type1Parts <- as.character(parts[,2][parts$type == 1])
+type2Parts <- c(as.character(parts[,2][parts$type == 2]), "None")
+type3Parts <- c(as.character(parts[,2][parts$type == 3]), "None")
+type3aParts <- c("None", as.character(parts[,2][parts$type == "3a"]))
+type3bParts <- c("None", as.character(parts[,2][parts$type == "3b"]))
+type4Parts <- c(as.character(parts[,2][parts$type == 4]), "None")
+type4aParts <- c("None", as.character(parts[,2][parts$type == "4a"]))
+type4bParts <- c("None", as.character(parts[,2][parts$type == "4b"]))
+type5Parts <- as.character(parts[,2][parts$type == 5])
+type6Parts <- c(as.character(parts[,2][parts$type == 6]), "None")
+type7Parts <- c(as.character(parts[,2][parts$type == 7]), "None")
+type8Parts <- c(as.character(parts[,2][parts$type == 8]), "None")
+type8aParts <- c("None", as.character(parts[,2][parts$type == "8a"]))
+type8bParts <- c("None", as.character(parts[,2][parts$type == "8b"]))
+type234Parts <- c("None", as.character(parts[,2][parts$type == 234]))
+type678Parts <- c("None", as.character(parts[,2][parts$type == 678]))
 
 source("functions.R")
 
 function (input,output) {
+  
+  output$partsTable <- renderDT({
+    partsDisplay <- parts[,1:3]
+    partsDisplay <- cbind(partsDisplay, rownames(partsDisplay))
+    partsDisplay <- partsDisplay[,c(4,1,2,3)]
+    partsDisplay <- cbind(partsDisplay, str_length(parts[,4]))
+    colnames(partsDisplay) <- c("Plasmid", "Type", "Description", "E. coli Antibiotic Reisistance", "Length")
+    partsDisplay
+  }, server = TRUE, selection = "single", rownames = FALSE)
+  
+  output$partsMap = renderUI({
+    rowNumber <- input$partsTable_rows_selected
+    urlNumberBase <- rowNumber + 160
+    urlNumber1 <- paste("0", substr(as.character(urlNumberBase),1,1), sep = "")
+    urlNumber2 <- substr(as.character(urlNumberBase),2,3)
+    urlNumber3 <- paste("110", as.character(urlNumberBase), sep = "")
+    urlNumber4 <- as.character(rowNumber + 65107)
+    urlNumber5 <- urlNumber3
+    urlFinal  <- paste("https://media.addgene.org/snapgene-media/v1.6.2-0-g4b4ed87/sequences/", urlNumber1, "/", urlNumber2, "/", urlNumber3, "/addgene-plasmid-", urlNumber4, "-sequence-", urlNumber5, "-map.png", sep = "")
+  
+    tags$img(src = urlFinal)  
+  })
   
   output$type1Input <- renderUI({
     selectInput("type1", "Assembly Connector (1)", type1Parts, selected = type1Parts[1])
@@ -92,14 +116,15 @@ function (input,output) {
       input$type234,
       input$type678
     )
-    
-    
     if (isValid) {
       "It's Good :)"
     } else {
       "It's Bad :("
     }
-    
   })
+  
+  output$pipetTable <- renderTable({
+  
+})
   
 }
