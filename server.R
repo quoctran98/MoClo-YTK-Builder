@@ -4,6 +4,7 @@ library(stringr)
 library(shinyjs)
 
 parts <- read.csv("data/parts.csv", row.names = 1)
+parts <- rbind(parts, read.csv("data/user.csv", row.names = 1))
 stock <- read.csv("data/stock.csv", row.names = 1)
 stock$concentration <- (rnorm(96, mean = 150, sd = 50)) #random test data
 
@@ -126,10 +127,10 @@ function (input,output) {
     selectedTypes <- as.character(parts[selectedNames, "type"])
     selectedConcentrations <- (stock[selectedNames,"concentration"])
     selectedLength <- str_length(parts[selectedNames,4])
-    selectedMoles <- rep.int(10, length(selectedNames))
+    selectedMoles <- rep.int(input$insertMole, length(selectedNames))
     for (plasmid in selectedNames) {
       if (as.character(parts[plasmid,"type"]) == "8" | as.character(parts[plasmid,"type"]) == "8a" | as.character(parts[plasmid,"type"]) == "678") {
-        selectedMoles[(selectedNames %in% plasmid)] <- 20
+        selectedMoles[(selectedNames %in% plasmid)] <- input$vectorMole
       }
     }
     selectedMass <- molesToMass(selectedMoles, selectedLength)

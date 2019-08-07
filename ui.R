@@ -11,7 +11,7 @@ fluidPage(
   
   tabsetPanel(
     
-    tabPanel(title = "Build Construct",
+    tabPanel(title = "Assemble Cassette",
             div(style = "margin-top:1em", wellPanel(fluidRow(
                column(1, div(style = "margin-right:-2em", wellPanel(style = "padding:5px; background: #82C4DE", uiOutput("type1Input")))),
                column(1, div(style = "margin-right:-2em", wellPanel(style = "padding:5px; background: #A9D05E", uiOutput("type2Input")))),
@@ -42,13 +42,21 @@ fluidPage(
               sidebarPanel(
                 textInput("constructName", "Plasmid Name"),
                 textInput("constructDescription", "Description"),
-                fileInput("constructFile", "GenBank File (optional)"),
+                fileInput("constructFile", "DNA File (optional)"),
                 shinyjs::hidden(actionButton("constructAction", "Add Cassette")),
                 textOutput("validConstruct")
               ),
               mainPanel(
-                wellPanel(tableOutput("pipetTable"), textOutput("validConstruct2"))
-              )
+                wellPanel(
+                  fluidRow(
+                    column(2,
+                      numericInput("insertMole", "Femtomoles of Insert", value = 20, min = 0),
+                      numericInput("vectorMole", "Femtomoles of Vector", value = 10, min = 0)
+                    ),
+                    column(10,tableOutput("pipetTable"), textOutput("validConstruct2"))
+                  )
+                )
+             )
              )
     ),
     
