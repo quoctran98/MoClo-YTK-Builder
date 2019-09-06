@@ -2,13 +2,12 @@ library(shiny)
 library(DT)
 library(stringr)
 library(shinyjs)
-library(Biostrings)
 
 parts <- read.csv("data/parts.csv", row.names = 1)
 parts <- rbind(parts, read.csv("data/user.csv", row.names = 1))
-parts[,"sequence"] <- DNAString(parts[,"sequence"])
+#parts[,"sequence"] <- DNAString(parts[,"sequence"])
 stock <- read.csv("data/stock.csv", row.names = 1)
-stock$concentration <- (rnorm(96, mean = 150, sd = 50)) #random test data
+#stock$concentration <- (rnorm(96, mean = 150, sd = 50)) #random test data
 
 type1Parts <- as.character(parts[,2][parts$type == 1])
 type2Parts <- c(as.character(parts[,2][parts$type == 2]), "None")
