@@ -41,19 +41,8 @@ function (input,output) {
   
   output$partsMap = renderUI({
     rowNumber <- input$partsTable_rows_selected
-    urlNumberBase <- rowNumber + 160
-    urlNumber1 <- paste("0", substr(as.character(urlNumberBase),1,1), sep = "")
-    urlNumber2 <- substr(as.character(urlNumberBase),2,3)
-    urlNumber3 <- paste("110", as.character(urlNumberBase), sep = "")
-    urlNumber4 <- as.character(rowNumber + 65107)
-    urlNumber5 <- urlNumber3
-    urlFinal  <- paste("https://media.addgene.org/snapgene-media/v1.6.2-0-g4b4ed87/sequences/", 
-                       urlNumber1, "/", 
-                       urlNumber2, "/", 
-                       urlNumber3, "/addgene-plasmid-", 
-                       urlNumber4, "-sequence-", 
-                       urlNumber5, "-map.png", sep = "")
-    tags$img(src = urlFinal)})
+    tags$img(src = generateAddgeneURL(rowNumber = rowNumber))
+  })
   
   output$type1Input <- renderUI({selectInput("type1", "Assembly Connector (1)", type1Parts, selected = type1Parts[1])})
   output$type2Input <- renderUI({selectInput("type2", "Promoter (2)", type2Parts, selected = type2Parts[1])})

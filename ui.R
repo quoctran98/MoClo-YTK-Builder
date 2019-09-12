@@ -40,7 +40,7 @@ fluidPage(
              ))),
             sidebarLayout(
               sidebarPanel(
-                textInput("constructName", "Plasmid Name"),
+                textInput("constructName", "Construct Name"),
                 textInput("constructDescription", "Description"),
                 fileInput("constructFile", "DNA File (optional)"),
                 shinyjs::hidden(actionButton("constructAction", "Add Cassette")),
@@ -60,13 +60,24 @@ fluidPage(
              )
     ),
     
-    tabPanel(title = "Add Parts",
-            dateInput("date", "Date")
+    tabPanel(title = "YTK Parts List",
+          sidebarLayout(
+            sidebarPanel(
+              dateInput("date", "Date"),
+              textInput("partName", "Part Name"),
+              textInput("partDescription", "Description"),
+              fileInput("partFile", "DNA File (optional)"),
+              shinyjs::hidden(actionButton("constructAction", "Add Cassette"))
+            ),
+            mainPanel(
+              
+            )
+          )
     ),
     
-    tabPanel(title = "Parts List",
+    tabPanel(title = "View Parts?",
              sidebarLayout(
-               sidebarPanel(DTOutput("partsTable") ),
+               sidebarPanel(DTOutput("partsTable")),
                mainPanel(htmlOutput("partsMap"))
              )
     )

@@ -71,3 +71,19 @@ assembleCassette <- function (t1,t2,t3,t3a,t3b,t4,t4a,t4b,t5,t6,t7,t8,t8a,t8b,t2
   t234DNA <- (parts[parts$description == t234 & parts$type == "234","sequence"])
   t678DNA <- (parts[parts$description == t678 & parts$type == "678","sequence"])
 }
+
+generateAddgeneURL <- function (rowNumber) {
+  urlNumberBase <- rowNumber + 160
+  urlNumber1 <- paste("0", substr(as.character(urlNumberBase),1,1), sep = "")
+  urlNumber2 <- substr(as.character(urlNumberBase),2,3)
+  urlNumber3 <- paste("110", as.character(urlNumberBase), sep = "")
+  urlNumber4 <- as.character(rowNumber + 65107)
+  urlNumber5 <- urlNumber3
+  urlFinal  <- paste("https://media.addgene.org/snapgene-media/v1.6.2-0-g4b4ed87/sequences/", 
+                     urlNumber1, "/", 
+                     urlNumber2, "/", 
+                     urlNumber3, "/addgene-plasmid-", 
+                     urlNumber4, "-sequence-", 
+                     urlNumber5, "-map.png", sep = "")
+  return(urlFinal)
+}
