@@ -5,45 +5,65 @@ library(shinyjs)
 
 parts <- read.csv("data/parts.csv", row.names = 1)
 parts <- rbind(parts, read.csv("data/user.csv", row.names = 1))
-#parts[,"sequence"] <- DNAString(parts[,"sequence"])
-stock <- read.csv("data/stock.csv", row.names = 1)
-#stock$concentration <- (rnorm(96, mean = 150, sd = 50)) #random test data
+parts <- merge(parts, read.csv("data/stock.csv", row.names = 1), by = "row.names", all.x = TRUE)
+rownames(parts) <- parts$Row.names
+parts <- parts[ , !(names(parts) %in% c("Row.names"))]
+parts$concentration[is.na(parts$concentration)] <- 0
 
-type1Parts <- as.character(parts[,2][parts$type == 1])
-type2Parts <- c(as.character(parts[,2][parts$type == 2]), "None")
-type3Parts <- c(as.character(parts[,2][parts$type == 3]), "None")
-type3aParts <- c("None", as.character(parts[,2][parts$type == "3a"]))
-type3bParts <- c("None", as.character(parts[,2][parts$type == "3b"]))
-type4Parts <- c(as.character(parts[,2][parts$type == 4]), "None")
-type4aParts <- c("None", as.character(parts[,2][parts$type == "4a"]))
-type4bParts <- c("None", as.character(parts[,2][parts$type == "4b"]))
-type5Parts <- as.character(parts[,2][parts$type == 5])
-type6Parts <- c(as.character(parts[,2][parts$type == 6]), "None")
-type7Parts <- c(as.character(parts[,2][parts$type == 7]), "None")
-type8Parts <- c(as.character(parts[,2][parts$type == 8]), "None")
-type8aParts <- c("None", as.character(parts[,2][parts$type == "8a"]))
-type8bParts <- c("None", as.character(parts[,2][parts$type == "8b"]))
-type234Parts <- c("None", as.character(parts[,2][parts$type == 234]))
-type678Parts <- c("None", as.character(parts[,2][parts$type == 678]))
+type1Parts <- as.character(parts$description[parts$type == 1])
+type2Parts <- c(as.character(parts$description[parts$type == 2]), "None")
+type3Parts <- c(as.character(parts$description[parts$type == 3]), "None")
+type3aParts <- c("None", as.character(parts$description[parts$type == "3a"]))
+type3bParts <- c("None", as.character(parts$description[parts$type == "3b"]))
+type4Parts <- c(as.character(parts$description[parts$type == 4]), "None")
+type4aParts <- c("None", as.character(parts$description[parts$type == "4a"]))
+type4bParts <- c("None", as.character(parts$description[parts$type == "4b"]))
+type5Parts <- as.character(parts$description[parts$type == 5])
+type6Parts <- c(as.character(parts$description[parts$type == 6]), "None")
+type7Parts <- c(as.character(parts$description[parts$type == 7]), "None")
+type8Parts <- c(as.character(parts$description[parts$type == 8]), "None")
+type8aParts <- c("None", as.character(parts$description[parts$type == "8a"]))
+type8bParts <- c("None", as.character(parts$description[parts$type == "8b"]))
+type234Parts <- c("None", as.character(parts$description[parts$type == 234]))
+type678Parts <- c("None", as.character(parts$description[parts$type == 678]))
 
 source("functions.R")
 
-function (input,output) {
+function (input,output,session) {
+  
+  # output$partsTable <- renderDT({
+  #   partsDisplay <- parts[,1:3]
+  #   partsDisplay <- cbind(partsDisplay, rownames(partsDisplay))
+  #   partsDisplay <- partsDisplay[,c(4,1,2,3)]
+  #   partsDisplay <- cbind(partsDisplay, str_length(parts[,4]))
+  #   colnames(partsDisplay) <- c("Plasmid", "Type", "Description", "E. coli Antibiotic Reisistance", "Length")
+  #   partsDisplay
+  # }, server = TRUE, selection = "single", rownames = FALSE)
+  
+  
+  # output$partsMap = renderUI({
+  #   rowNumber <- input$partsTable_rows_selected
+  #   tags$img(src = generateAddgeneURL(rowNumber = rowNumber))
+  # })
   
   output$partsTable <- renderDT({
-    partsDisplay <- parts[,1:3]
+    partsDisplay <- parts[,c("type","description","antibiotic")]
     partsDisplay <- cbind(partsDisplay, rownames(partsDisplay))
-    partsDisplay <- partsDisplay[,c(4,1,2,3)]
-    partsDisplay <- cbind(partsDisplay, str_length(parts[,4]))
+    partsDisplay <- partsDisplay[,c(4,1,2,3)] # reording columns
+    partsDisplay <- cbind(partsDisplay, str_length(parts[,"sequence"]))
     colnames(partsDisplay) <- c("Plasmid", "Type", "Description", "E. coli Antibiotic Reisistance", "Length")
     partsDisplay
   }, server = TRUE, selection = "single", rownames = FALSE)
   
-  output$partsMap = renderUI({
+  observe({
     rowNumber <- input$partsTable_rows_selected
-    tags$img(src = generateAddgeneURL(rowNumber = rowNumber))
+    updateTextInput(session, "partName", value = rownames(parts)[rowNumber])
+    updateTextInput(session, "partType", value = parts[rowNumber,"type"])
+    updateTextInput(session, "partDescription", value = parts[rowNumber,"description"])
+    updateSelectInput(session, "partAntibiotic", selected = parts[rowNumber,"antibiotic"])
+    updateNumericInput(session, "partMiniprep", value = parts[rowNumber, "concentration"])
   })
-  
+ 
   output$type1Input <- renderUI({selectInput("type1", "Assembly Connector (1)", type1Parts, selected = type1Parts[1])})
   output$type2Input <- renderUI({selectInput("type2", "Promoter (2)", type2Parts, selected = type2Parts[1])})
   output$type3Input <- renderUI({selectInput("type3", "Coding Sequence (3)", type3Parts, selected = type3Parts[1])})
@@ -115,7 +135,7 @@ function (input,output) {
         rownames(parts[parts$description == input$type678 & parts$type == "678",]))
     selectedDescriptions <- as.character(parts[selectedNames, "description"])
     selectedTypes <- as.character(parts[selectedNames, "type"])
-    selectedConcentrations <- (stock[selectedNames,"concentration"])
+    selectedConcentrations <- (parts[selectedNames,"concentration"])
     selectedLength <- str_length(parts[selectedNames,4])
     selectedMoles <- rep.int(input$insertMole, length(selectedNames))
     for (plasmid in selectedNames) {

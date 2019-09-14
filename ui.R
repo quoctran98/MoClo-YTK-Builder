@@ -60,27 +60,31 @@ fluidPage(
              )
     ),
     
-    tabPanel(title = "YTK Parts List",
+    tabPanel(title = "Parts",
           sidebarLayout(
             sidebarPanel(
-              dateInput("date", "Date"),
-              textInput("partName", "Part Name"),
+              "Update Parts",
+              dateInput("partDate", "Date"),
+              textInput("partName", "Part Name", value = "pYTK001"),
+              textInput("partType", "Type"),
               textInput("partDescription", "Description"),
+              selectInput("partAntibiotic", "E. Coli Selection", c("Chloramphenicol", "Ampicillin", "Kanymycin")),
+              numericInput("partMiniprep", "Miniprepped Concentration", value = 0),
               fileInput("partFile", "DNA File (optional)"),
               shinyjs::hidden(actionButton("constructAction", "Add Cassette"))
             ),
             mainPanel(
-              
+              DTOutput("partsTable")
             )
           )
-    ),
-    
-    tabPanel(title = "View Parts?",
-             sidebarLayout(
-               sidebarPanel(DTOutput("partsTable")),
-               mainPanel(htmlOutput("partsMap"))
-             )
     )
+    
+    #, tabPanel(title = "View Parts?",
+    #          sidebarLayout(
+    #            sidebarPanel(DTOutput("partsTable")),
+    #            mainPanel(htmlOutput("partsMap"))
+    #          )
+    # )
     
   )
 )
