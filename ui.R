@@ -63,7 +63,6 @@ fluidPage(
     tabPanel(title = "Parts",
           sidebarLayout(
             sidebarPanel(
-              "Update Parts",
               dateInput("partDate", "Date"),
               textInput("partName", "Part Name", value = "pYTK001"),
               textInput("partType", "Type"),
@@ -71,7 +70,9 @@ fluidPage(
               selectInput("partAntibiotic", "E. Coli Selection", c("Chloramphenicol", "Ampicillin", "Kanymycin")),
               numericInput("partMiniprep", "Miniprepped Concentration", value = 0),
               fileInput("partFile", "DNA File (optional)"),
-              shinyjs::hidden(actionButton("constructAction", "Add Cassette"))
+              shinyjs::hidden(actionButton("partAdd", "Add Part")),
+              shinyjs::hidden(actionButton("partUpdate", "Update Part")),
+              textOutput("textTest")
             ),
             mainPanel(
               DTOutput("partsTable")

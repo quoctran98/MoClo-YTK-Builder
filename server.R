@@ -3,7 +3,13 @@ library(DT)
 library(stringr)
 library(shinyjs)
 
-parts <- read.csv("data/parts.csv", row.names = 1)
+typeDefinitions <- data.frame(
+  c("t1", "t2", "t3", "t3a", "t3b", "t4", "t4a", "t4b", "t234", "t5", "t6", "t7", "t8", "t8a", "t8b", "t687"),
+  c("1", "2", "3", "3a", "3b", "4", "4a", "4b", "234", "5", "6", "7", "8", "8a", "8b", "687"),
+  c("Assembly Connector (1)", "Promoter (2)", "Coding Sequence (3)", "N-terminal CDS (3a)", "CDS (3)", "Terminator (4)", "C-terminal CDS (4a)", "Terminator (4b)", "Miscellaneous (234)", "Assembly Connector (5)", "S. cerevisiae marker (6)", "S. cerevisiae origin / 3' homology (7)", "E. coli marker and origin (8)", "E. coli marker and origin (8a)", "5' homology (8b)", "E. coli marker and origin (678)")
+)
+
+parts <- read.csv("data/parts.csv", row.names = 1, stringsAsFactors = FALSE)
 parts <- rbind(parts, read.csv("data/user.csv", row.names = 1))
 parts <- merge(parts, read.csv("data/stock.csv", row.names = 1), by = "row.names", all.x = TRUE)
 rownames(parts) <- parts$Row.names
@@ -46,24 +52,8 @@ function (input,output,session) {
   #   tags$img(src = generateAddgeneURL(rowNumber = rowNumber))
   # })
   
-  output$partsTable <- renderDT({
-    partsDisplay <- parts[,c("type","description","antibiotic")]
-    partsDisplay <- cbind(partsDisplay, rownames(partsDisplay))
-    partsDisplay <- partsDisplay[,c(4,1,2,3)] # reording columns
-    partsDisplay <- cbind(partsDisplay, str_length(parts[,"sequence"]))
-    colnames(partsDisplay) <- c("Plasmid", "Type", "Description", "E. coli Antibiotic Reisistance", "Length")
-    partsDisplay
-  }, server = TRUE, selection = "single", rownames = FALSE)
+  # Cassette page
   
-  observe({
-    rowNumber <- input$partsTable_rows_selected
-    updateTextInput(session, "partName", value = rownames(parts)[rowNumber])
-    updateTextInput(session, "partType", value = parts[rowNumber,"type"])
-    updateTextInput(session, "partDescription", value = parts[rowNumber,"description"])
-    updateSelectInput(session, "partAntibiotic", selected = parts[rowNumber,"antibiotic"])
-    updateNumericInput(session, "partMiniprep", value = parts[rowNumber, "concentration"])
-  })
- 
   output$type1Input <- renderUI({selectInput("type1", "Assembly Connector (1)", type1Parts, selected = type1Parts[1])})
   output$type2Input <- renderUI({selectInput("type2", "Promoter (2)", type2Parts, selected = type2Parts[1])})
   output$type3Input <- renderUI({selectInput("type3", "Coding Sequence (3)", type3Parts, selected = type3Parts[1])})
@@ -150,4 +140,65 @@ function (input,output,session) {
     colnames(finalTable) <- c("Type", "Plasmid", "Description", "Length", "Miniprepped Conc.", "Volume to Use", "Dilution for 1uL")
     finalTable
   }, hover = TRUE, striped = TRUE, bordered = TRUE)
+  
+  # Parts page
+  
+  renderPartsTable <- function() {
+    output$partsTable <- renderDT({
+      partsDisplay <- parts[,c("type","description","antibiotic","concentration")]
+      partsDisplay <- cbind(partsDisplay, rownames(partsDisplay))
+      partsDisplay <- partsDisplay[,c(5,1,2,3,4)] # reording columns
+      partsDisplay <- cbind(partsDisplay, str_length(parts[,"sequence"]))
+      colnames(partsDisplay) <- c("Plasmid", "Type", "Description", "E. coli Antibiotic", "Miniprepped", "Length")
+      partsDisplay
+    }, server = TRUE, selection = "single", rownames = FALSE)
+  }
+  renderPartsTable()
+  
+  # Updates fields in the parts info
+  observe({
+    rowNumber <- input$partsTable_rows_selected
+    updateTextInput(session, "partName", value = rownames(parts)[rowNumber])
+    updateTextInput(session, "partType", value = parts[rowNumber,"type"])
+    updateTextInput(session, "partDescription", value = parts[rowNumber,"description"])
+    updateSelectInput(session, "partAntibiotic", selected = parts[rowNumber,"antibiotic"])
+    updateNumericInput(session, "partMiniprep", value = parts[rowNumber, "concentration"])
+  })
+  
+  # Checks to see if a new part is being added or an existing one updated
+  observe({
+    if ((input$partName != "") && !(input$partName %in% rownames(parts))) {
+      shinyjs::show(id = "partAdd")
+    } else {
+      shinyjs::hide(id = "partAdd")
+    }
+  })
+  
+  observe({
+    if ((input$partName %in% rownames(parts)) && ((input$partType != parts[input$partName,"type"]) || (input$partDescription != parts[input$partName,"description"]) || (input$partAntibiotic != parts[input$partName,"antibiotic"]) || (input$partMiniprep != parts[input$partName,"concentration"]))) {
+      shinyjs::show(id = "partUpdate")
+    } else {
+      shinyjs::hide(id = "partUpdate")
+    }
+  })
+  
+  observeEvent(input$partUpdate, {
+    shinyjs::hide(id = "partUpdate")
+    parts[input$partName,"type"] <<- input$partType
+    parts[input$partName,"description"] <<- input$partDescription
+    parts[input$partName,"antibiotic"] <<- input$partAntibiotic
+    parts[input$partName,"concentration"] <<- input$partMiniprep
+    renderPartsTable()
+    output$textTest <- renderText({as.character(parts["pYTK001","description"])})
+  })
+  
+  observeEvent(input$partAdd, {
+    shinyjs::hide(id = "partAdd")
+    parts[input$partName,"type"] <<- input$partType
+    parts[input$partName,"description"] <<- input$partDescription
+    parts[input$partName,"antibiotic"] <<- input$partAntibiotic
+    parts[input$partName,"concentration"] <<- input$partMiniprep
+    renderPartsTable()
+  })
+  
 }
