@@ -5,9 +5,10 @@ library(shinyjs)
 
 typeDefinitions <- data.frame(
   c("t1", "t2", "t3", "t3a", "t3b", "t4", "t4a", "t4b", "t234", "t5", "t6", "t7", "t8", "t8a", "t8b", "t687"),
-  c("1", "2", "3", "3a", "3b", "4", "4a", "4b", "234", "5", "6", "7", "8", "8a", "8b", "687"),
-  c("Assembly Connector (1)", "Promoter (2)", "Coding Sequence (3)", "N-terminal CDS (3a)", "CDS (3)", "Terminator (4)", "C-terminal CDS (4a)", "Terminator (4b)", "Miscellaneous (234)", "Assembly Connector (5)", "S. cerevisiae marker (6)", "S. cerevisiae origin / 3' homology (7)", "E. coli marker and origin (8)", "E. coli marker and origin (8a)", "5' homology (8b)", "E. coli marker and origin (678)")
-)
+  row.names = 1)
+typeDefinitions$type <- c("1", "2", "3", "3a", "3b", "4", "4a", "4b", "234", "5", "6", "7", "8", "8a", "8b", "687")
+typeDefinitions$description <- c("Assembly Connector (1)", "Promoter (2)", "Coding Sequence (3)", "N-terminal CDS (3a)", "CDS (3)", "Terminator (4)", "C-terminal CDS (4a)", "Terminator (4b)", "Miscellaneous (234)", "Assembly Connector (5)", "S. cerevisiae marker (6)", "S. cerevisiae origin / 3' homology (7)", "E. coli marker and origin (8)", "E. coli marker and origin (8a)", "5' homology (8b)", "E. coli marker and origin (678)")
+typeDefinitions$components <- list("t1","t2",c("t3a","t3b"),"t3a","t3b",c("t4a","t4b"),"t4a","t4b",c("t2","t3a","t3b","t4a","t4b"),"t5","t6","t7",c("t8a","t8b"),"t8a","t8b",c("t6","t7","t8a","t8b"))
 
 parts <- read.csv("data/parts.csv", row.names = 1, stringsAsFactors = FALSE)
 parts <- rbind(parts, read.csv("data/user.csv", row.names = 1))
@@ -16,22 +17,40 @@ rownames(parts) <- parts$Row.names
 parts <- parts[ , !(names(parts) %in% c("Row.names"))]
 parts$concentration[is.na(parts$concentration)] <- 0
 
-type1Parts <- as.character(parts$description[parts$type == 1])
-type2Parts <- c(as.character(parts$description[parts$type == 2]), "None")
-type3Parts <- c(as.character(parts$description[parts$type == 3]), "None")
-type3aParts <- c("None", as.character(parts$description[parts$type == "3a"]))
-type3bParts <- c("None", as.character(parts$description[parts$type == "3b"]))
-type4Parts <- c(as.character(parts$description[parts$type == 4]), "None")
-type4aParts <- c("None", as.character(parts$description[parts$type == "4a"]))
-type4bParts <- c("None", as.character(parts$description[parts$type == "4b"]))
-type5Parts <- as.character(parts$description[parts$type == 5])
-type6Parts <- c(as.character(parts$description[parts$type == 6]), "None")
-type7Parts <- c(as.character(parts$description[parts$type == 7]), "None")
-type8Parts <- c(as.character(parts$description[parts$type == 8]), "None")
-type8aParts <- c("None", as.character(parts$description[parts$type == "8a"]))
-type8bParts <- c("None", as.character(parts$description[parts$type == "8b"]))
-type234Parts <- c("None", as.character(parts$description[parts$type == 234]))
-type678Parts <- c("None", as.character(parts$description[parts$type == 678]))
+# type1Parts <- as.character(parts$description[parts$type == 1])
+# type2Parts <- c(as.character(parts$description[parts$type == 2]), "None")
+# type3Parts <- c(as.character(parts$description[parts$type == 3]), "None")
+# type3aParts <- c("None", as.character(parts$description[parts$type == "3a"]))
+# type3bParts <- c("None", as.character(parts$description[parts$type == "3b"]))
+# type4Parts <- c(as.character(parts$description[parts$type == 4]), "None")
+# type4aParts <- c("None", as.character(parts$description[parts$type == "4a"]))
+# type4bParts <- c("None", as.character(parts$description[parts$type == "4b"]))
+# type5Parts <- as.character(parts$description[parts$type == 5])
+# type6Parts <- c(as.character(parts$description[parts$type == 6]), "None")
+# type7Parts <- c(as.character(parts$description[parts$type == 7]), "None")
+# type8Parts <- c(as.character(parts$description[parts$type == 8]), "None")
+# type8aParts <- c("None", as.character(parts$description[parts$type == "8a"]))
+# type8bParts <- c("None", as.character(parts$description[parts$type == "8b"]))
+# type234Parts <- c("None", as.character(parts$description[parts$type == 234]))
+# type678Parts <- c("None", as.character(parts$description[parts$type == 678]))
+
+typeDefinitions$parts <- list(c(as.character(parts$description[parts$type == 1])),
+                              c(as.character(parts$description[parts$type == 2]), ""),
+                              c(as.character(parts$description[parts$type == 3]), ""),
+                              c("", as.character(parts$description[parts$type == "3a"])),
+                              c("", as.character(parts$description[parts$type == "3b"])),
+                              c(as.character(parts$description[parts$type == 4]), ""),
+                              c("", as.character(parts$description[parts$type == "4a"])),
+                              c("", as.character(parts$description[parts$type == "4b"])),
+                              c("", as.character(parts$description[parts$type == 234])),
+                              c(as.character(parts$description[parts$type == 5])),
+                              c(as.character(parts$description[parts$type == 6]), ""),
+                              c(as.character(parts$description[parts$type == 7]), ""),
+                              c(as.character(parts$description[parts$type == 8]), ""),
+                              c("", as.character(parts$description[parts$type == "8a"])),
+                              c("", as.character(parts$description[parts$type == "8b"])),
+                              c("", as.character(parts$description[parts$type == 678]))
+                            )
 
 source("functions.R")
 
@@ -53,6 +72,23 @@ function (input,output,session) {
   # })
   
   # Cassette page
+  
+  # output$type1Input <- renderPartsList("t1")
+  # output$type2Input <- renderPartsList("t2")
+  # output$type3Input <- renderPartsList("t3")
+  # output$type3aInput <- renderPartsList("t3a")
+  # output$type3bInput <- renderPartsList("t3b")
+  # output$type4Input <- renderPartsList("t4")
+  # output$type4aInput <- renderPartsList("t4a")
+  # output$type4bInput <- renderPartsList("t4b")
+  # output$type234Input <- renderPartsList("t234")
+  # output$type5Input <- renderPartsList("t5")
+  # output$type6Input <- renderPartsList("t6")
+  # output$type7Input <- renderPartsList("t7")
+  # output$type8Input <- renderPartsList("t8")
+  # output$type8aInput <- renderPartsList("t8a")
+  # output$type8bInput <- renderPartsList("t8b")
+  # output$type678Input <- renderPartsList("t678")
   
   output$type1Input <- renderUI({selectInput("type1", "Assembly Connector (1)", type1Parts, selected = type1Parts[1])})
   output$type2Input <- renderUI({selectInput("type2", "Promoter (2)", type2Parts, selected = type2Parts[1])})

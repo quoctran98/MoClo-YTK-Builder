@@ -87,3 +87,15 @@ generateAddgeneURL <- function (rowNumber) {
                      urlNumber5, "-map.png", sep = "")
   return(urlFinal)
 }
+
+renderPartsList <- function (type) {
+  return(
+    renderUI({
+    selectInput(paste("type", "t1", sep = ""), 
+                typeDefinitions["t1","description"], 
+                unlist(typeDefinitions["t1","parts"]), 
+                selected = unlist(typeDefinitions["t1","parts"])
+                )
+    })
+  )
+}
