@@ -17,22 +17,22 @@ rownames(parts) <- parts$Row.names
 parts <- parts[ , !(names(parts) %in% c("Row.names"))]
 parts$concentration[is.na(parts$concentration)] <- 0
 
-# type1Parts <- as.character(parts$description[parts$type == 1])
-# type2Parts <- c(as.character(parts$description[parts$type == 2]), "None")
-# type3Parts <- c(as.character(parts$description[parts$type == 3]), "None")
-# type3aParts <- c("None", as.character(parts$description[parts$type == "3a"]))
-# type3bParts <- c("None", as.character(parts$description[parts$type == "3b"]))
-# type4Parts <- c(as.character(parts$description[parts$type == 4]), "None")
-# type4aParts <- c("None", as.character(parts$description[parts$type == "4a"]))
-# type4bParts <- c("None", as.character(parts$description[parts$type == "4b"]))
-# type5Parts <- as.character(parts$description[parts$type == 5])
-# type6Parts <- c(as.character(parts$description[parts$type == 6]), "None")
-# type7Parts <- c(as.character(parts$description[parts$type == 7]), "None")
-# type8Parts <- c(as.character(parts$description[parts$type == 8]), "None")
-# type8aParts <- c("None", as.character(parts$description[parts$type == "8a"]))
-# type8bParts <- c("None", as.character(parts$description[parts$type == "8b"]))
-# type234Parts <- c("None", as.character(parts$description[parts$type == 234]))
-# type678Parts <- c("None", as.character(parts$description[parts$type == 678]))
+ type1Parts <- as.character(parts$description[parts$type == 1])
+ type2Parts <- c(as.character(parts$description[parts$type == 2]), "None")
+ type3Parts <- c(as.character(parts$description[parts$type == 3]), "None")
+ type3aParts <- c("None", as.character(parts$description[parts$type == "3a"]))
+ type3bParts <- c("None", as.character(parts$description[parts$type == "3b"]))
+ type4Parts <- c(as.character(parts$description[parts$type == 4]), "None")
+ type4aParts <- c("None", as.character(parts$description[parts$type == "4a"]))
+ type4bParts <- c("None", as.character(parts$description[parts$type == "4b"]))
+ type5Parts <- as.character(parts$description[parts$type == 5])
+ type6Parts <- c(as.character(parts$description[parts$type == 6]), "None")
+ type7Parts <- c(as.character(parts$description[parts$type == 7]), "None")
+ type8Parts <- c(as.character(parts$description[parts$type == 8]), "None")
+ type8aParts <- c("None", as.character(parts$description[parts$type == "8a"]))
+ type8bParts <- c("None", as.character(parts$description[parts$type == "8b"]))
+ type234Parts <- c("None", as.character(parts$description[parts$type == 234]))
+ type678Parts <- c("None", as.character(parts$description[parts$type == 678]))
 
 typeDefinitions$parts <- list(c(as.character(parts$description[parts$type == 1])),
                               c(as.character(parts$description[parts$type == 2]), ""),
@@ -106,6 +106,7 @@ function (input,output,session) {
   output$type8bInput <- renderUI({selectInput("type8b", "5' homology (8b)", type8bParts, selected = type8bParts[1])})
   output$type234Input <- renderUI({selectInput("type234", "Miscellaneous (234)", type234Parts, selected = type234Parts[1])})
   output$type678Input <- renderUI({selectInput("type678", "E. coli marker and origin (678)", type678Parts, selected = type678Parts[1])})
+  
   
   output$validConstruct <- renderText({
     message <- ""

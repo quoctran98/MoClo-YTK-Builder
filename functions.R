@@ -91,10 +91,10 @@ generateAddgeneURL <- function (rowNumber) {
 renderPartsList <- function (type) {
   return(
     renderUI({
-    selectInput(paste("type", "t1", sep = ""), 
-                typeDefinitions["t1","description"], 
-                unlist(typeDefinitions["t1","parts"]), 
-                selected = unlist(typeDefinitions["t1","parts"])
+    selectInput(paste("type", type, sep = ""), 
+                typeDefinitions[type,"description"], 
+                unlist(typeDefinitions[type,"parts"]), 
+                selected = unlist(typeDefinitions[type,"parts"])
                 )
     })
   )
