@@ -1,0 +1,19 @@
+type,name,includes
+1,Assembly Connector,
+2,Promoter,"2a,2b"
+3,Coding Sequence,"3a,3b"
+4,Termintaor,"4a,4b"
+5,Assembly Connector,
+6,S. cerevisiae marker,
+7,S. cerevisiae origin / 3' homology,
+8,E. coli marker and origin,"8a,8b"
+2a,,
+2b,,
+3a,N-terminal CDS,
+3b,CDS,
+4a,C-terminal CDS,
+4b,Termintaor,
+8a,E. coli marker and origin,
+8b,5' homology,
+234,Miscellaneous,"2,3,4"
+678,E. coli marker and origin,"6,7,8"

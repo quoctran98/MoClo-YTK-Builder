@@ -22,11 +22,7 @@ validConstruct <- function (t1,t2,t3,t3a,t3b,t4,t4a,t4b,t5,t6,t7,t8,t8a,t8b,t234
                      na.rm = TRUE
                   )
   if (return == "logical") {
-    if (partsNumber == 11) {
-      return(TRUE)
-    } else {
-      return(FALSE)
-    }
+    return(partsNumber == 11)
   } else if (return == "numerical") {
     return(partsNumber)
   }
@@ -47,6 +43,7 @@ molesToMass <- function (moles, length, molePrefix = 0.000000000000001, massPref
     endWeight <- 18.02
   } else {
     print(paste(type, "is not a nucleic acid type. Defaulting to dsDNA."))
+    return(molesToMass(moles, length))
   }
   
   mass <- (moles * molePrefix) * ((length * avgWeight) + endWeight)

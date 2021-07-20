@@ -3,58 +3,51 @@ library(DT)
 library(stringr)
 library(shinyjs)
 
-typeDefinitions <- data.frame(
-  c("t1", "t2", "t3", "t3a", "t3b", "t4", "t4a", "t4b", "t234", "t5", "t6", "t7", "t8", "t8a", "t8b", "t687"),
-  row.names = 1)
-typeDefinitions$type <- c("1", "2", "3", "3a", "3b", "4", "4a", "4b", "234", "5", "6", "7", "8", "8a", "8b", "687")
-typeDefinitions$description <- c("Assembly Connector (1)", "Promoter (2)", "Coding Sequence (3)", "N-terminal CDS (3a)", "CDS (3)", "Terminator (4)", "C-terminal CDS (4a)", "Terminator (4b)", "Miscellaneous (234)", "Assembly Connector (5)", "S. cerevisiae marker (6)", "S. cerevisiae origin / 3' homology (7)", "E. coli marker and origin (8)", "E. coli marker and origin (8a)", "5' homology (8b)", "E. coli marker and origin (678)")
-typeDefinitions$components <- list("t1","t2",c("t3a","t3b"),"t3a","t3b",c("t4a","t4b"),"t4a","t4b",c("t2","t3a","t3b","t4a","t4b"),"t5","t6","t7",c("t8a","t8b"),"t8a","t8b",c("t6","t7","t8a","t8b"))
+sapply(paste0("./functions/", list.files("./functions")), source)
 
-parts <- read.csv("data/parts.csv", row.names = 1, stringsAsFactors = FALSE)
-parts <- rbind(parts, read.csv("data/user.csv", row.names = 1))
-parts <- merge(parts, read.csv("data/stock.csv", row.names = 1), by = "row.names", all.x = TRUE)
+# let's write something to put all the parts in one dataframe
+parts <- read.csv("./data/parts/base.csv", row.names = 1, stringsAsFactors = FALSE)
+for (file in list.files("./data/parts/kits")) {
+  parts <- rbind(parts, read.csv(paste0("./data/parts/kits/", file), row.names = 1, stringsAsFactors = FALSE))
+}
+
+# now we need to add concentrations to the parts df
+parts <- merge(parts, read.csv("./data/stock.csv", row.names = 1), by = "row.names", all.x = TRUE)
 rownames(parts) <- parts$Row.names
-parts <- parts[ , !(names(parts) %in% c("Row.names"))]
+parts <- parts[,!(names(parts) %in% c("Row.names"))]
 parts$concentration[is.na(parts$concentration)] <- 0
 
- type1Parts <- as.character(parts$description[parts$type == 1])
- type2Parts <- c(as.character(parts$description[parts$type == 2]), "None")
- type3Parts <- c(as.character(parts$description[parts$type == 3]), "None")
- type3aParts <- c("None", as.character(parts$description[parts$type == "3a"]))
- type3bParts <- c("None", as.character(parts$description[parts$type == "3b"]))
- type4Parts <- c(as.character(parts$description[parts$type == 4]), "None")
- type4aParts <- c("None", as.character(parts$description[parts$type == "4a"]))
- type4bParts <- c("None", as.character(parts$description[parts$type == "4b"]))
- type5Parts <- as.character(parts$description[parts$type == 5])
- type6Parts <- c(as.character(parts$description[parts$type == 6]), "None")
- type7Parts <- c(as.character(parts$description[parts$type == 7]), "None")
- type8Parts <- c(as.character(parts$description[parts$type == 8]), "None")
- type8aParts <- c("None", as.character(parts$description[parts$type == "8a"]))
- type8bParts <- c("None", as.character(parts$description[parts$type == "8b"]))
- type234Parts <- c("None", as.character(parts$description[parts$type == 234]))
- type678Parts <- c("None", as.character(parts$description[parts$type == 678]))
+# part types df
+types <- read.csv("./data/types.csv")
 
-typeDefinitions$parts <- list(c(as.character(parts$description[parts$type == 1])),
-                              c(as.character(parts$description[parts$type == 2]), ""),
-                              c(as.character(parts$description[parts$type == 3]), ""),
-                              c("", as.character(parts$description[parts$type == "3a"])),
-                              c("", as.character(parts$description[parts$type == "3b"])),
-                              c(as.character(parts$description[parts$type == 4]), ""),
-                              c("", as.character(parts$description[parts$type == "4a"])),
-                              c("", as.character(parts$description[parts$type == "4b"])),
-                              c("", as.character(parts$description[parts$type == 234])),
-                              c(as.character(parts$description[parts$type == 5])),
-                              c(as.character(parts$description[parts$type == 6]), ""),
-                              c(as.character(parts$description[parts$type == 7]), ""),
-                              c(as.character(parts$description[parts$type == 8]), ""),
-                              c("", as.character(parts$description[parts$type == "8a"])),
-                              c("", as.character(parts$description[parts$type == "8b"])),
-                              c("", as.character(parts$description[parts$type == 678]))
-                            )
-
-source("functions.R")
-
-function (input,output,session) {
+function (input, output, session) {
+  
+  # populating dropdown menus (for loops have lazy eval here)
+  lapply(1:nrow(types), function (row) {
+    typeInfo <- types[row,]
+    typeParts <- getParts(typeInfo$type, defaultEmpty = !(typeInfo$type %in% 1:8))
+    output[[paste0("type", typeInfo$type, "Input")]] <- renderUI({
+      selectInput(paste0("type", typeInfo$type, "Select"), # each dropdown menu has ID "type[type]Select"
+                  typeInfo$name,
+                  typeParts,
+                  typeParts[1])
+    })
+  })
+  
+  # validate constructs
+  # honestly i don't quite get what observe does but it works...
+  observe({
+    validateOutput <- validateConstruct(input)
+    if (validateOutput$isValid) {
+      #shinyjs::show(id = "pipetTable", anim = TRUE)
+      shinyjs::show(id = "constructAction", anim = TRUE, animType = "fade")
+    } else {
+      shinyjs::hide(id = "constructAction", anim = TRUE, animType = "fade")
+    }
+    
+    output$validConstruct <- renderText({paste0("Extra parts: ", paste(validateOutput$extra, collapse = ", "), "\n",
+                                                "Missing parts: ", paste(validateOutput$missing, collapse = ", "))})
+  })
   
   # output$partsTable <- renderDT({
   #   partsDisplay <- parts[,1:3]
@@ -70,78 +63,6 @@ function (input,output,session) {
   #   rowNumber <- input$partsTable_rows_selected
   #   tags$img(src = generateAddgeneURL(rowNumber = rowNumber))
   # })
-  
-  # Cassette page
-  
-  # output$type1Input <- renderPartsList("t1")
-  # output$type2Input <- renderPartsList("t2")
-  # output$type3Input <- renderPartsList("t3")
-  # output$type3aInput <- renderPartsList("t3a")
-  # output$type3bInput <- renderPartsList("t3b")
-  # output$type4Input <- renderPartsList("t4")
-  # output$type4aInput <- renderPartsList("t4a")
-  # output$type4bInput <- renderPartsList("t4b")
-  # output$type234Input <- renderPartsList("t234")
-  # output$type5Input <- renderPartsList("t5")
-  # output$type6Input <- renderPartsList("t6")
-  # output$type7Input <- renderPartsList("t7")
-  # output$type8Input <- renderPartsList("t8")
-  # output$type8aInput <- renderPartsList("t8a")
-  # output$type8bInput <- renderPartsList("t8b")
-  # output$type678Input <- renderPartsList("t678")
-  
-  output$type1Input <- renderUI({selectInput("type1", "Assembly Connector (1)", type1Parts, selected = type1Parts[1])})
-  output$type2Input <- renderUI({selectInput("type2", "Promoter (2)", type2Parts, selected = type2Parts[1])})
-  output$type3Input <- renderUI({selectInput("type3", "Coding Sequence (3)", type3Parts, selected = type3Parts[1])})
-  output$type3aInput <- renderUI({selectInput("type3a", "N-terminal CDS (3a)", type3aParts, selected = type3aParts[1])})
-  output$type3bInput <- renderUI({selectInput("type3b", "CDS (3b)", type3bParts, selected = type3bParts[1])})
-  output$type4Input <- renderUI({selectInput("type4", "Terminator (4)", type4Parts, selected = type4Parts[1])})
-  output$type4aInput <- renderUI({selectInput("type4a", "C-terminal CDS (4a)", type4aParts, selected = type4aParts[1])})
-  output$type4bInput <- renderUI({selectInput("type4b", "Terminator (4b)", type4bParts, selected = type4bParts[1])})
-  output$type5Input <- renderUI({selectInput("type5", "Assembly Connector (5)", type5Parts, selected = type5Parts[1])})
-  output$type6Input <- renderUI({selectInput("type6", "S. cerevisiae marker (6)", type6Parts, selected = type6Parts[1])})
-  output$type7Input <- renderUI({selectInput("type7", "S. cerevisiae origin / 3' homology (7)", type7Parts, selected = type7Parts[1])})
-  output$type8Input <- renderUI({selectInput("type8", "E. coli marker and origin (8)", type8Parts, selected = type8Parts[1])})
-  output$type8aInput <- renderUI({selectInput("type8a", "E. coli marker and origin (8a)", type8aParts, selected = type8aParts[1])})
-  output$type8bInput <- renderUI({selectInput("type8b", "5' homology (8b)", type8bParts, selected = type8bParts[1])})
-  output$type234Input <- renderUI({selectInput("type234", "Miscellaneous (234)", type234Parts, selected = type234Parts[1])})
-  output$type678Input <- renderUI({selectInput("type678", "E. coli marker and origin (678)", type678Parts, selected = type678Parts[1])})
-  
-  
-  output$validConstruct <- renderText({
-    message <- ""
-    isValid <- validConstruct(
-      input$type1,
-      input$type2,
-      input$type3,
-      input$type3a,
-      input$type3b,
-      input$type4,
-      input$type4a,
-      input$type4b,
-      input$type5,
-      input$type6,
-      input$type7,
-      input$type8,
-      input$type8a,
-      input$type8b,
-      input$type234,
-      input$type678, return = "numerical")
-    if (isValid == 11) {
-      message <- ""
-      shinyjs::show(id = "pipetTable", anim = TRUE)
-      shinyjs::show(id = "constructAction", anim = TRUE, animType = "fade")
-    } else if (isValid > 11) {
-      message <- "Cassette assembly will not work with too many parts. Please remove certain parts."
-      shinyjs::hide(id = "pipetTable", anim = TRUE)
-      shinyjs::hide(id = "constructAction", anim = TRUE, animType = "fade")
-    } else if (isValid < 11) {
-      message <- "Cassette assembly will not work with too few parts. Please add certain parts."
-      shinyjs::hide(id = "pipetTable", anim = TRUE)
-      shinyjs::hide(id = "constructAction", anim = TRUE, animType = "fade")
-    }
-    message
-  })
   
   output$pipetTable <- renderTable({
     selectedNames <- c(rownames(parts[parts$description == input$type1 & parts$type == "1",]),
