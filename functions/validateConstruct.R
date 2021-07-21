@@ -10,9 +10,9 @@ validateConstruct <- function(shinyInput, typesList = types) {
   })
   
   usedTypes <- typesList[typesList$part != "None", "type"]
-  
+
   # loop through types to break them down to reqTypes
-  while (F %in% (usedTypes %in% reqTypes)) {  # keep going while there's a type that's not in reqType
+  while (!all(usedTypes %in% reqTypes)) {  # keep going while there's a type that's not in reqType
     newTypes <- c()
     for (oldType in usedTypes) {
       includes <- typesList[typesList$type == oldType, "includes"]

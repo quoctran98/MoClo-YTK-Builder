@@ -39,9 +39,10 @@ function (input, output, session) {
   observe({
     validateOutput <- validateConstruct(input)
     if (validateOutput$isValid) {
-      #shinyjs::show(id = "pipetTable", anim = TRUE)
+      shinyjs::show(id = "pipetTable", anim = TRUE)
       shinyjs::show(id = "constructAction", anim = TRUE, animType = "fade")
     } else {
+      shinyjs::hide(id = "pipetTable", anim = TRUE)
       shinyjs::hide(id = "constructAction", anim = TRUE, animType = "fade")
     }
     
@@ -65,38 +66,39 @@ function (input, output, session) {
   # })
   
   output$pipetTable <- renderTable({
-    selectedNames <- c(rownames(parts[parts$description == input$type1 & parts$type == "1",]),
-        rownames(parts[parts$description == input$type2 & parts$type == "2",]),
-        rownames(parts[parts$description == input$type3 & parts$type == "3",]),
-        rownames(parts[parts$description == input$type3a& parts$type == "3a",]),
-        rownames(parts[parts$description == input$type3b & parts$type == "3b",]),
-        rownames(parts[parts$description == input$type4 & parts$type == "4",]),
-        rownames(parts[parts$description == input$type4a & parts$type == "4a",]),
-        rownames(parts[parts$description == input$type4b & parts$type == "4b",]),
-        rownames(parts[parts$description == input$type5 & parts$type == "5",]),
-        rownames(parts[parts$description == input$type6 & parts$type == "6",]),
-        rownames(parts[parts$description == input$type7 & parts$type == "7",]),
-        rownames(parts[parts$description == input$type8 & parts$type == "8",]),
-        rownames(parts[parts$description == input$type8a & parts$type == "8a",]),
-        rownames(parts[parts$description == input$type8b & parts$type == "8b",]),
-        rownames(parts[parts$description == input$type234 & parts$type == "234",]),
-        rownames(parts[parts$description == input$type678 & parts$type == "678",]))
-    selectedDescriptions <- as.character(parts[selectedNames, "description"])
-    selectedTypes <- as.character(parts[selectedNames, "type"])
-    selectedConcentrations <- (parts[selectedNames,"concentration"])
-    selectedLength <- str_length(parts[selectedNames,4])
-    selectedMoles <- rep.int(input$insertMole, length(selectedNames))
-    for (plasmid in selectedNames) {
-      if (as.character(parts[plasmid,"type"]) == "8" | as.character(parts[plasmid,"type"]) == "8a" | as.character(parts[plasmid,"type"]) == "678") {
-        selectedMoles[(selectedNames %in% plasmid)] <- input$vectorMole
-      }
-    }
-    selectedMass <- molesToMass(selectedMoles, selectedLength)
-    selectedVolume <- selectedMass / selectedConcentrations
-    selectedDilutions <- paste("1:", round(1 / selectedVolume), sep = "")
-    finalTable <- cbind(selectedTypes, selectedNames, selectedDescriptions, paste(selectedLength, "bp"), paste(round(selectedConcentrations, digits = 2), "ng/uL"), paste(round(selectedVolume, digits = 2), "uL"), selectedDilutions)
-    colnames(finalTable) <- c("Type", "Plasmid", "Description", "Length", "Miniprepped Conc.", "Volume to Use", "Dilution for 1uL")
-    finalTable
+    buildTable(input)
+    # selectedNames <- c(rownames(parts[parts$description == input$type1 & parts$type == "1",]),
+    #     rownames(parts[parts$description == input$type2 & parts$type == "2",]),
+    #     rownames(parts[parts$description == input$type3 & parts$type == "3",]),
+    #     rownames(parts[parts$description == input$type3a& parts$type == "3a",]),
+    #     rownames(parts[parts$description == input$type3b & parts$type == "3b",]),
+    #     rownames(parts[parts$description == input$type4 & parts$type == "4",]),
+    #     rownames(parts[parts$description == input$type4a & parts$type == "4a",]),
+    #     rownames(parts[parts$description == input$type4b & parts$type == "4b",]),
+    #     rownames(parts[parts$description == input$type5 & parts$type == "5",]),
+    #     rownames(parts[parts$description == input$type6 & parts$type == "6",]),
+    #     rownames(parts[parts$description == input$type7 & parts$type == "7",]),
+    #     rownames(parts[parts$description == input$type8 & parts$type == "8",]),
+    #     rownames(parts[parts$description == input$type8a & parts$type == "8a",]),
+    #     rownames(parts[parts$description == input$type8b & parts$type == "8b",]),
+    #     rownames(parts[parts$description == input$type234 & parts$type == "234",]),
+    #     rownames(parts[parts$description == input$type678 & parts$type == "678",]))
+    # selectedDescriptions <- as.character(parts[selectedNames, "description"])
+    # selectedTypes <- as.character(parts[selectedNames, "type"])
+    # selectedConcentrations <- (parts[selectedNames,"concentration"])
+    # selectedLength <- str_length(parts[selectedNames,4])
+    # selectedMoles <- rep.int(input$insertMole, length(selectedNames))
+    # for (plasmid in selectedNames) {
+    #   if (as.character(parts[plasmid,"type"]) == "8" | as.character(parts[plasmid,"type"]) == "8a" | as.character(parts[plasmid,"type"]) == "678") {
+    #     selectedMoles[(selectedNames %in% plasmid)] <- input$vectorMole
+    #   }
+    # }
+    # selectedMass <- molesToMass(selectedMoles, selectedLength)
+    # selectedVolume <- selectedMass / selectedConcentrations
+    # selectedDilutions <- paste("1:", round(1 / selectedVolume), sep = "")
+    # finalTable <- cbind(selectedTypes, selectedNames, selectedDescriptions, paste(selectedLength, "bp"), paste(round(selectedConcentrations, digits = 2), "ng/uL"), paste(round(selectedVolume, digits = 2), "uL"), selectedDilutions)
+    # colnames(finalTable) <- c("Type", "Plasmid", "Description", "Length", "Miniprepped Conc.", "Volume to Use", "Dilution for 1uL")
+    # finalTable
   }, hover = TRUE, striped = TRUE, bordered = TRUE)
   
   # Parts page
