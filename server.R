@@ -2,19 +2,27 @@ library(shiny)
 library(DT)
 library(stringr)
 library(shinyjs)
+library(purrr)
 
 sapply(paste0("./functions/", list.files("./functions")), source)
 
-# let's write something to put all the parts in one dataframe
-parts <- read.csv("./data/parts/base.csv", row.names = 1, stringsAsFactors = FALSE)
+# let's write something to put all the parts in one dataframe (prefix each part name with file name) BASE VS MOCLOYTK!!!
+parts <- read.csv("./data/parts/MoClo-YTK.csv", row.names = 1, stringsAsFactors = FALSE)
+parts$name <- rownames(parts) # we do this bc there's a weird issue with UTF-8 BOM encoding that prevents us from not having the row.names arg in read.csv (https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505)
+parts$kit <- "MoClo-YTK"
+
 for (file in list.files("./data/parts/kits")) {
-  parts <- rbind(parts, read.csv(paste0("./data/parts/kits/", file), row.names = 1, stringsAsFactors = FALSE))
+  kit <- read.csv(paste0("./data/parts/kits/", file), row.names = 1, stringsAsFactors = FALSE)
+  kit$name <- rownames(kit)
+  kit$kit <- str_replace(file, ".csv", "")
+  parts <- rbind(parts, kit)
+  rm(file, kit)
 }
 
 # now we need to add concentrations to the parts df
-parts <- merge(parts, read.csv("./data/stock.csv", row.names = 1), by = "row.names", all.x = TRUE)
-rownames(parts) <- parts$Row.names
-parts <- parts[,!(names(parts) %in% c("Row.names"))]
+parts <- merge(parts, read.csv("./data/stock.csv", row.names = 1), by = c("row.names", "kit"), all.x = TRUE) # i don't know if it does AND or OR for the columns
+rownames(parts) <- parts$Row.names # i really don't get what this does?
+parts <- parts[,!(names(parts) %in% c("Row.names"))] # this either???
 parts$concentration[is.na(parts$concentration)] <- 0
 
 # part types df
@@ -22,15 +30,16 @@ types <- read.csv("./data/types.csv")
 
 function (input, output, session) {
   
-  # populating dropdown menus (for loops have lazy eval here)
+  # populating dropdown menus (for loops have lazy eval here) 
+  # make this reactive to update parts
   lapply(1:nrow(types), function (row) {
     typeInfo <- types[row,]
     typeParts <- getParts(typeInfo$type, defaultEmpty = !(typeInfo$type %in% 1:8))
     output[[paste0("type", typeInfo$type, "Input")]] <- renderUI({
-      selectInput(paste0("type", typeInfo$type, "Select"), # each dropdown menu has ID "type[type]Select"
-                  typeInfo$name,
-                  typeParts,
-                  typeParts[1])
+      selectInput(inputId = paste0("type", typeInfo$type, "Select"), # each dropdown menu has ID "type[type]Select"
+                  label = typeInfo$label,
+                  choices = typeParts,
+                  selected = typeParts[1])
     })
   })
   
@@ -67,38 +76,6 @@ function (input, output, session) {
   
   output$pipetTable <- renderTable({
     buildTable(input)
-    # selectedNames <- c(rownames(parts[parts$description == input$type1 & parts$type == "1",]),
-    #     rownames(parts[parts$description == input$type2 & parts$type == "2",]),
-    #     rownames(parts[parts$description == input$type3 & parts$type == "3",]),
-    #     rownames(parts[parts$description == input$type3a& parts$type == "3a",]),
-    #     rownames(parts[parts$description == input$type3b & parts$type == "3b",]),
-    #     rownames(parts[parts$description == input$type4 & parts$type == "4",]),
-    #     rownames(parts[parts$description == input$type4a & parts$type == "4a",]),
-    #     rownames(parts[parts$description == input$type4b & parts$type == "4b",]),
-    #     rownames(parts[parts$description == input$type5 & parts$type == "5",]),
-    #     rownames(parts[parts$description == input$type6 & parts$type == "6",]),
-    #     rownames(parts[parts$description == input$type7 & parts$type == "7",]),
-    #     rownames(parts[parts$description == input$type8 & parts$type == "8",]),
-    #     rownames(parts[parts$description == input$type8a & parts$type == "8a",]),
-    #     rownames(parts[parts$description == input$type8b & parts$type == "8b",]),
-    #     rownames(parts[parts$description == input$type234 & parts$type == "234",]),
-    #     rownames(parts[parts$description == input$type678 & parts$type == "678",]))
-    # selectedDescriptions <- as.character(parts[selectedNames, "description"])
-    # selectedTypes <- as.character(parts[selectedNames, "type"])
-    # selectedConcentrations <- (parts[selectedNames,"concentration"])
-    # selectedLength <- str_length(parts[selectedNames,4])
-    # selectedMoles <- rep.int(input$insertMole, length(selectedNames))
-    # for (plasmid in selectedNames) {
-    #   if (as.character(parts[plasmid,"type"]) == "8" | as.character(parts[plasmid,"type"]) == "8a" | as.character(parts[plasmid,"type"]) == "678") {
-    #     selectedMoles[(selectedNames %in% plasmid)] <- input$vectorMole
-    #   }
-    # }
-    # selectedMass <- molesToMass(selectedMoles, selectedLength)
-    # selectedVolume <- selectedMass / selectedConcentrations
-    # selectedDilutions <- paste("1:", round(1 / selectedVolume), sep = "")
-    # finalTable <- cbind(selectedTypes, selectedNames, selectedDescriptions, paste(selectedLength, "bp"), paste(round(selectedConcentrations, digits = 2), "ng/uL"), paste(round(selectedVolume, digits = 2), "uL"), selectedDilutions)
-    # colnames(finalTable) <- c("Type", "Plasmid", "Description", "Length", "Miniprepped Conc.", "Volume to Use", "Dilution for 1uL")
-    # finalTable
   }, hover = TRUE, striped = TRUE, bordered = TRUE)
   
   # Parts page

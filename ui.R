@@ -54,8 +54,8 @@ fluidPage(
                 wellPanel(
                   fluidRow(
                     column(2,
-                      numericInput("insertAmt", "Femtomoles of Insert", value = 20, min = 0),
-                      numericInput("vectorAmt", "Femtomoles of Vector", value = 10, min = 0)
+                      numericInput("insertAmt", "Amount of Insert (fmol)", value = 20, min = 0),
+                      numericInput("vectorAmt", "Amount of Vector (fmol)", value = 10, min = 0)
                     ),
                     column(10,tableOutput("pipetTable"), textOutput("validConstruct2"))
                   )

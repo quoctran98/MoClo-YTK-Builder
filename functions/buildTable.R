@@ -2,17 +2,12 @@ source("./functions/convertMoles.R")
 
 buildTable <- function(shinyInput, typesList = types, partsList = parts) {
   
-  usedParts <- data.frame(part = sapply(1:nrow(typesList), function (row) {
-                                        typeInfo <- typesList[row,]
-                                        return(shinyInput[[paste0("type", typeInfo$type, "Select")]])
-                                      }),
-                          type = sapply(1:nrow(typesList), function (row) {
-                                        return(typeInfo <- typesList[row, "type"])
-                                      }))
-  usedParts <- usedParts[usedParts$part != "None",]
+  usedParts <- parseParts(shinyInput = shinyInput, typesList = typesList)
+  usedParts <- usedParts[!is.na(usedParts$name),]
   
-  pipetTable <- partsList[partsList$description %in% usedParts$part & partsList$type %in% usedParts$type,] # there definitely can be edge cases where this won't work
-  pipetTable <- pipetTable[match(usedParts$part, pipetTable$description),] # reorder the table
+  # parts of the same type in a kit should have unique names (descriptions can be the same)
+  pipetTable <- partsList[partsList$name %in% usedParts$name & partsList$type %in% usedParts$type & partsList$kit %in% usedParts$kit,]
+  pipetTable <- pipetTable[match(usedParts$name, pipetTable$name),] # reorder the table
   
   pipetTable$length <- nchar(pipetTable$sequence)
 
@@ -27,7 +22,7 @@ buildTable <- function(shinyInput, typesList = types, partsList = parts) {
   
   # add plasmid names and make final table
   pipetTable$name <- row.names(pipetTable)
-  pipetTable <- pipetTable[, c("type", "name", "description", "concentration", "mass", "dilution")]
-  colnames(pipetTable) <- c("Type", "Part", "Description", "Conc. (ng/\U03BCL)", "Mass (ng)", "Dilution")
+  pipetTable <- pipetTable[, c("type", "kit", "name", "description", "concentration", "mass", "dilution")]
+  colnames(pipetTable) <- c("Type", "Kit", "Part", "Description", "Conc. (ng/\U03BCL)", "Mass (ng)", "Dilution")
   return(pipetTable)
 }
